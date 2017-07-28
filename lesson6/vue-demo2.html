@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Vue-demo2</title>
+    <script src="../assets/vue/vue.js"></script>
+    <script src="../assets/vue/vue-router.js"></script>
+    <link href="../assets/layui/css/layui.css" rel="stylesheet">
+</head>
+
+<body>
+    <div id="app">
+        <router-link v-for="n in [1,2,3,4,5,6,7,8]" :to="{name:'page',params:{num:n}}" :key="n">&nbsp;{{n}}&nbsp;</router-link>
+        <div>
+            <router-view></router-view>
+        </div>
+    </div>
+
+    <script>
+        var fakeData = [];
+        (function () {
+        	for (var i = 0; i < 45; i++) {
+        		fakeData.push({
+        			id: i + 1,
+        			title: `step by stey learn Vue (${i})`,
+        			desc: `step by step learn Vue --- content (${i}) --- end`,
+        			readcount: parseInt(Math.random() * 1000)
+        		});
+        	}
+        })();
+        
+        var ArticleItemComponent = {
+        	template: `
+        	<ul class="article-item">
+        	    <li>{{item.readcount}}</li>
+        	    <li>{{item.title}}</li>
+        	    <li>{{item.desc}}</li>
+            </ul>
+        	`,
+        	props: ['item']
+        }
+        
+        var ArticleListComponent = {
+            template: `
+            <div class="article-list">
+                <article-item v-for="item in articleList" :item="item" :key="item.id"></article-item>
+            </div>
+            `,
+            data: function () {
+            	return {
+            		articleList: []
+            	}
+            },
+            created: function () {
+            	this.activePagedData();
+            },
+            methods: {
+            	activePagedData: function () {
+            		var index = this.$route.params.num;
+            		//
+            		var start = (index -1) * 5,
+            		    end = index * 5;
+            		this.articleList = fakeData.slice(start, end);
+            	}
+            }/* ,
+            watch: {
+            	'$route': function () {
+            		this.activePagedData();
+            	}
+            } */,
+            beforeRouteUpdate: function (to, from, next) {
+            	var index = to.params.num;
+            	this.activePagedData(index);
+            	next();
+            },
+            components: {
+            	'article-item': ArticleItemComponent
+            }
+            
+        }
+        
+        var router = new VueRouter({
+        	linkActiveClass: 'active',
+        	routes: [
+        		{ name: 'page', path: '/page/:num', component: ArticleListComponent }
+        	]
+        });
+        
+        var app = new Vue({
+        	router: router
+        }).$mount("#app");
+    </script>
+</body>
