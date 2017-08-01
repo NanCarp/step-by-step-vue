@@ -1,3 +1,34 @@
+axios.interceptors.request.use(
+	cfg => {
+		if (localStorage.getItem('token')) {
+			cfg.headers.Authorization = localStorage.getItem('token');
+		}
+		return cfg;
+	},
+	err => {
+		return Promise.reject(err);
+	}
+
+);
+
+axios.interceptors.response.use(
+	res => {
+		return res;
+	},
+	err => {
+		if (err.response) {
+			switch (err.response.status) {
+				case 401:
+					router.replace({
+						path: '/login',
+						query: {redirect: router.currentRoute.fullPath}
+					})
+			}
+		}
+		return Promise.reject(err.response.data)
+	}
+);
+
 var LoginComponent = {
     template: `
     
@@ -17,11 +48,19 @@ var LoginComponent = {
     },
     methods: {
 
-        login: function () {
+    	login: function () {
+            var self = this;
             axios.post('/login', this.user)
                 .then(function (res) {
-                    if (res.success) {
-                        localStorage.setItem('token', res.token);
+                    console.log(res);
+                    if (res.data.success) {
+                        localStorage.setItem('token', res.data.token);
+                        console.log(self.$router);
+                        self.$router.push({
+                            path: self.$route.query.to
+                        });
+                    } else {
+                        alert(res.data.errorMessage);
                     }
                 })
                 .catch(function (error) {
@@ -121,15 +160,21 @@ var HomeComponent = {
 
 var router = new VueRouter({
     //TODO:各种路由定义；
-    routes: [{
+	routes: [{
         name: 'home', path: '/home', component: HomeComponent
     },
     {
         name: 'customers', path: '/customers', component: CustomerListComponent,
+        meta: {
+            auth: true
+        }
 
     },
     {
         name: 'detail', path: '/detail/:id', component: CustomerComponent,
+        meta: {
+            auth: true
+        }
 
     },
     {
@@ -138,23 +183,23 @@ var router = new VueRouter({
     ]
 });
 
-//注册全局事件钩子
-//TODO:会在下一篇中详细分析
-// router.beforeEach(function (to, from, next) {
-//     if (to.matched.some(r => r.meta.auth)) {
-//         if (!localStorage.getItem('token')) {
-//             console.log("需要登录");
-//             next({
-//                 path: '/login',
-//                 query: { to: to.fullPath }
-//             })
-//         } else {
-//             next();
-//         }
-//     } else {
-//         next()
-//     }
-// });
+// 注册全局事件钩子
+// TODO:会在下一篇中详细分析
+ router.beforeEach(function (to, from, next) {
+     if (to.matched.some(r => r.meta.auth)) {
+         if (!localStorage.getItem('token')) {
+             console.log("需要登录");
+             next({
+                 path: '/login',
+                 query: { to: to.fullPath }
+             })
+         } else {
+             next();
+         }
+     } else {
+         next()
+     }
+ });
 
 
 var app = new Vue({
