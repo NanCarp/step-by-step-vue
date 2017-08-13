@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>demo4</title>
+<script src="../assets/vue/vue.js"></script>
+<script src="../assets/vue/vuex.js"></script>
+</head>
+<body>
+<div id="app">
+    <search></search>
+    <list></list>
+</div>
+<script>
+    // var eventBus = new Vue();
+    var store = new Vuex.Store({
+        state: {
+            list: null
+        },
+        mutations: {
+            search: function (state, payload) {
+                state.list = JSON.stringify(payload);
+            }
+        }
+    })
+
+    var SearchComponent = {
+        template: `
+            <div class="toolbar">
+                <input type="text" placeholder="keyword"  v-model="keyword"/>
+                <input type="text" placeholder="description" v-model="desc"/>
+                <input type="button" value="search" @click="search()" />
+             </div>
+            `,
+        data: function () {
+            return {
+                keyword: '',
+                desc: ''
+            }
+        },
+        methods: {
+            search: function () {
+                this.$store.commit("search",{ keyword: this.keyword, desc: this.desc })
+                //eventBus.$emit('onsearch', { keyword: this.keyword, desc: this.desc });
+            }
+        }
+    }
+
+    var ListComponent = {
+        template: `
+            <div class="list" >
+                {{list}}
+            </div>
+            `,
+        computed:{
+            list:function(){
+                return this.$store.state.list;
+            }
+        }
+
+    }
+
+
+
+    var app = new Vue({
+        el: '#app',
+        store:store,
+        components: {
+            // 'app':AppComponent
+            'list': ListComponent,
+            'search': SearchComponent
+        }
+    });
+</script>
+</body>
+
+</html>

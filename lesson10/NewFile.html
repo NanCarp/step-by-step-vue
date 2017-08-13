@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>demo4</title>
+<script src="../assets/vue/vue.js"></script>
+</head>
+<body>
+<div id="app">
+    <app></app>
+</div>
+<script>
+    var SearchComponent = {
+        template:`
+            <div class="toolbar">
+                <input type="text" placeholder="keyword"  v-model="keyword"/>
+                <input type="text" placeholder="description" v-model="desc"/>
+                <input type="button" value="search" @click="search()" />
+             </div>
+            `,
+        data:function(){
+            return {
+                keyword:'',
+                desc:''
+            }
+        },
+        methods:{
+            search:function(){
+                this.$emit('onsearch',{keyword:this.keyword,desc:this.desc});
+            }
+        }
+    }
+
+    var ListComponent = {
+        template:`
+            <div class="list" >
+                {{list}}
+            </div>
+            `,
+        props:['list']
+    }
+
+    var AppComponent={
+        template:`
+            <div class="container">
+                <search @onsearch="search($event)" ></search>
+                <list :list="datas" ></list>
+            </div>
+            `,
+        components:{
+            'list':ListComponent,
+            'search':SearchComponent
+        },
+        methods:{
+            search:function($e){
+                this.datas=JSON.stringify({
+                    data:[],
+                    info:'info'
+                });
+            }
+        },
+        data:function(){
+            return {
+                datas:null
+            }
+        }
+    }
+
+    var app=new Vue({
+        el:'#app',
+        components:{
+            'app':AppComponent
+        }
+    });
+</script>
+</body>
+</html>
